@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//d/Python/instinct/InstinctLab/**)",
+      "Read(//c/Users/jqrxy/.claude/projects/D--Python-instinct-InstinctLab/memory/**)",
+      "Bash(ls /g)",
+      "Read(//g/Projects/**)",
+      "Bash(git submodule *)",
+      "Bash(python *)",
+      "Bash(mkdir -p \"/g/Projects/obstacle_crossing\" \"/g/Projects/obstacle_crossing/memory\" \"/g/Projects/obstacle_crossing/raw_assets/terrain_cad\")",
+      "Bash(cp -a /d/Python/instinct/InstinctLab/. \"/g/Projects/obstacle_crossing/\")",
+      "Bash(cp -a \"C:/Users/jqrxy/.claude/projects/D--Python-instinct-InstinctLab/memory/.\" \"/g/Projects/obstacle_crossing/memory/\")",
+      "Bash(cp -a \"/g/CAD/障碍建模/.\" \"/g/Projects/obstacle_crossing/raw_assets/terrain_cad/\")"
+    ]
+  }
+}

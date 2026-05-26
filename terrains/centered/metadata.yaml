@@ -1,0 +1,22 @@
+motion_files: []
+terrains:
+- terrain_file: 1.Continuous Ramp.stl
+  terrain_id: continuous_ramp
+- terrain_file: 2.Continuous Hurdling.stl
+  terrain_id: continuous_hurdling
+- terrain_file: 3.Cross Slope.stl
+  terrain_id: cross_slope
+- terrain_file: 4.Consecutive Slalom.stl
+  terrain_id: consecutive_slalom
+- terrain_file: 5.Symmetrical Ramp.stl
+  terrain_id: symmetrical_ramp
+- terrain_file: 6.Spiral Staircase.stl
+  terrain_id: spiral_staircase
+- terrain_file: 7.S-Curve.stl
+  terrain_id: s_curve
+- terrain_file: 8.One-meter Platform.stl
+  terrain_id: one_meter_platform
+- terrain_file: 9.Crawl Channel.stl
+  terrain_id: crawl_channel
+- terrain_file: 10.Width-restricted L-shaped Bend.stl
+  terrain_id: width_restricted_l_shaped
