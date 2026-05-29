@@ -1,4 +1,9 @@
 from .terrain_assignment import EnvTerrainAssignmentView  # noqa: F401
+from .sequence_pool_scheduler import (  # noqa: F401
+    SequencePoolDecision,
+    SequencePoolOrchestrator,
+    SequencePoolScheduler,
+)
 from .terrain_layout import ObstacleTerrainLayout, ObstacleTerrainLayoutBuilder  # noqa: F401
 from .terrain_physics import (  # noqa: F401
     DEFAULT_TERRAIN_COLLISION_PROFILES,

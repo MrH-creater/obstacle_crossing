@@ -1,0 +1,42 @@
+# Registry-aligned motion-matched metadata for the current six-terrain training pool.
+#
+# This file is the generated/curated training-side metadata that matches the
+# terrain ids and terrain ordering defined in:
+#   source/obstacle_crossing/obstacle_crossing/terrain/terrain_registry.py
+#
+# It should be treated as the training-time metadata view derived from the
+# registry, rather than as an independent source of truth.
+
+terrains:
+  - terrain_id: 0
+    terrain_file: ../centered/1.Continuous Ramp.stl
+  - terrain_id: 1
+    terrain_file: ../centered/2.Continuous Hurdling.stl
+  - terrain_id: 2
+    terrain_file: ../centered/3.Cross Slope.stl
+  - terrain_id: 3
+    terrain_file: ../centered/4.Consecutive Slalom.stl
+  - terrain_id: 4
+    terrain_file: ../centered/5.Symmetrical Ramp.stl
+  - terrain_id: 6
+    terrain_file: ../centered/7.S-Curve.stl
+
+motion_files:
+  - terrain_id: 0
+    motion_file: motions/ramp_retargetted.npz
+    weight: 1.0
+  - terrain_id: 1
+    motion_file: motions/hurdling_retargetted.npz
+    weight: 1.0
+  - terrain_id: 2
+    motion_file: motions/cross_slope_retargetted.npz
+    weight: 1.0
+  - terrain_id: 3
+    motion_file: motions/slalom_retargetted.npz
+    weight: 1.0
+  - terrain_id: 4
+    motion_file: motions/symmetrical_ramp_retargetted.npz
+    weight: 1.0
+  - terrain_id: 6
+    motion_file: motions/s_curve_retargetted.npz
+    weight: 1.0

@@ -191,8 +191,7 @@ class ObstacleTerrainLayoutBuilder:
         seed: int = 0,
     ) -> dict[str, ObstacleTerrainLayout]:
         total_tiles = num_rows * num_cols
-        role_ratios = self._role_ratios(iteration, sampling_cfg)
-        role_counts = self._role_counts(total_tiles, role_ratios, sampling_cfg)
+        role_counts = self.build_training_role_counts(total_tiles, iteration, sampling_cfg)
 
         layouts: dict[str, ObstacleTerrainLayout] = {}
         role_seeds = {
@@ -235,6 +234,15 @@ class ObstacleTerrainLayoutBuilder:
             use_holdout_specs=True,
         )
         return layouts
+
+    def build_training_role_counts(
+        self,
+        total_tiles: int,
+        iteration: int,
+        sampling_cfg: ContinuousSequenceSamplingCfg,
+    ) -> dict[str, int]:
+        role_ratios = self._role_ratios(iteration, sampling_cfg)
+        return self._role_counts(total_tiles, role_ratios, sampling_cfg)
 
     def _sequence_candidate_specs(
         self,

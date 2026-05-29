@@ -27,7 +27,7 @@ __file_dir__ = os.path.dirname(os.path.realpath(__file__))
 _TERRAIN_DATA_DIR = os.path.abspath(
     os.path.join(__file_dir__, "..", "..", "..", "..", "..", "..", "..", "terrains", "combined")
 )
-_METADATA_YAML = os.path.join(_TERRAIN_DATA_DIR, "metadata.yaml")
+_METADATA_YAML = os.path.join(_TERRAIN_DATA_DIR, "metadata_registry_aligned.yaml")
 
 G1_CFG = copy.deepcopy(G1_29DOF_TORSOBASE_POPSICLE_CFG)
 G1_CFG.spawn.merge_fixed_joints = True
