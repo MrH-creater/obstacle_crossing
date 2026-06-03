@@ -11,6 +11,12 @@ import torch
 from .sequence_generator import SequenceTemplatePool
 from .terrain_layout import ObstacleTerrainLayout
 from .terrain_registry import ObstacleTerrainRegistry
+from .terrain_waypoints import (
+    PathProfileRange,
+    TargetPatchRecord,
+    WaypointPathRecord,
+    build_single_terrain_waypoint_record,
+)
 
 if TYPE_CHECKING:
     from isaaclab.envs import ManagerBasedRLEnv
@@ -50,6 +56,7 @@ class ObstacleEnvAssignmentRecord:
     tile_index: int
     template_geometry_path: str | None
     template_metadata_path: str | None
+    waypoint_path: WaypointPathRecord | None
 
 
 @dataclass(frozen=True)
@@ -70,6 +77,7 @@ class ObstacleTileAssignmentRecord:
     sequence_total_length_y: float | None
     template_geometry_path: str | None
     template_metadata_path: str | None
+    waypoint_path: WaypointPathRecord | None
 
 
 class ObstacleTileAssignmentTable:
@@ -88,6 +96,7 @@ class ObstacleTileAssignmentTable:
     ):
         self.registry = registry
         self.layouts = dict(layouts or {})
+        self._single_waypoint_paths_by_terrain_id: dict[int, WaypointPathRecord] = {}
         if tile_records is not None:
             self._tile_records = list(tile_records)
         else:
@@ -136,6 +145,7 @@ class ObstacleTileAssignmentTable:
                     physics_profile_keys = tuple(spec.physics_profile_key for spec in specs)
                     collision_profile_keys = tuple(spec.collision_profile_key for spec in specs)
                     assignment_kind: AssignmentKind = "single" if seq_len == 1 else "sequence"
+                    waypoint_path = self._single_waypoint_path_for_spec(specs[0]) if assignment_kind == "single" else None
                     records.append(
                         ObstacleTileAssignmentRecord(
                             tile_index=tile_index,
@@ -154,6 +164,7 @@ class ObstacleTileAssignmentTable:
                             sequence_total_length_y=None,
                             template_geometry_path=None,
                             template_metadata_path=None,
+                            waypoint_path=waypoint_path,
                         )
                     )
                     tile_index += 1
@@ -188,6 +199,8 @@ class ObstacleTileAssignmentTable:
         records: list[ObstacleTileAssignmentRecord] = []
         for offset in range(sequence_tile_count):
             template = sequence_pool.template_records[offset % len(sequence_pool.template_records)]
+            if template.sequence_path is None:
+                raise ValueError(f"Sequence template '{template.sequence_id}' does not carry sequence_path.")
             records.append(
                 ObstacleTileAssignmentRecord(
                     tile_index=starting_tile_index + offset,
@@ -206,9 +219,18 @@ class ObstacleTileAssignmentTable:
                     sequence_total_length_y=template.sequence_total_length_y,
                     template_geometry_path=template.geometry_output_path,
                     template_metadata_path=template.metadata_output_path,
+                    waypoint_path=template.sequence_path,
                 )
             )
         return records
+
+    def _single_waypoint_path_for_spec(self, spec) -> WaypointPathRecord:
+        cached_path = self._single_waypoint_paths_by_terrain_id.get(spec.terrain_id)
+        if cached_path is not None:
+            return cached_path
+        path = build_single_terrain_waypoint_record(spec).path
+        self._single_waypoint_paths_by_terrain_id[spec.terrain_id] = path
+        return path
 
     def _merge_capabilities(self, specs) -> tuple[str, ...]:
         merged: list[str] = []
@@ -536,6 +558,62 @@ class EnvTerrainAssignmentView:
         tile_indices = self.tile_indices_for_envs(env_ids)
         return [self.tile_table.get(int(tile_idx.item())).template_metadata_path for tile_idx in tile_indices]
 
+    def waypoint_paths_for_envs(
+        self,
+        env: ManagerBasedRLEnv | None = None,
+        env_ids: torch.Tensor | None = None,
+    ) -> list[WaypointPathRecord | None]:
+        tile_indices = self.tile_indices_for_envs(env_ids)
+        return [self.tile_table.get(int(tile_idx.item())).waypoint_path for tile_idx in tile_indices]
+
+    def target_patches_for_envs(
+        self,
+        env: ManagerBasedRLEnv | None = None,
+        env_ids: torch.Tensor | None = None,
+    ) -> list[tuple[TargetPatchRecord, ...]]:
+        paths = self.waypoint_paths_for_envs(env=env, env_ids=env_ids)
+        return [path.target_patches if path is not None else () for path in paths]
+
+    def profile_ranges_for_envs(
+        self,
+        env: ManagerBasedRLEnv | None = None,
+        env_ids: torch.Tensor | None = None,
+    ) -> list[tuple[PathProfileRange, ...]]:
+        paths = self.waypoint_paths_for_envs(env=env, env_ids=env_ids)
+        return [path.profile_ranges if path is not None else () for path in paths]
+
+    def path_frames_for_envs(
+        self,
+        env: ManagerBasedRLEnv | None = None,
+        env_ids: torch.Tensor | None = None,
+    ) -> list[str | None]:
+        paths = self.waypoint_paths_for_envs(env=env, env_ids=env_ids)
+        return [path.frame if path is not None else None for path in paths]
+
+    def path_total_lengths_for_envs(
+        self,
+        env: ManagerBasedRLEnv | None = None,
+        env_ids: torch.Tensor | None = None,
+    ) -> list[float | None]:
+        paths = self.waypoint_paths_for_envs(env=env, env_ids=env_ids)
+        return [path.total_length_s if path is not None else None for path in paths]
+
+    def lookahead_distances_for_envs(
+        self,
+        env: ManagerBasedRLEnv | None = None,
+        env_ids: torch.Tensor | None = None,
+    ) -> list[float | None]:
+        paths = self.waypoint_paths_for_envs(env=env, env_ids=env_ids)
+        return [path.default_lookahead_distance if path is not None else None for path in paths]
+
+    def corridor_half_widths_for_envs(
+        self,
+        env: ManagerBasedRLEnv | None = None,
+        env_ids: torch.Tensor | None = None,
+    ) -> list[float | None]:
+        paths = self.waypoint_paths_for_envs(env=env, env_ids=env_ids)
+        return [path.corridor_half_width if path is not None else None for path in paths]
+
     def sequence_lengths_for_envs(
         self,
         env: ManagerBasedRLEnv | None = None,
@@ -597,6 +675,7 @@ class EnvTerrainAssignmentView:
                     tile_index=tile_record.tile_index,
                     template_geometry_path=tile_record.template_geometry_path,
                     template_metadata_path=tile_record.template_metadata_path,
+                    waypoint_path=tile_record.waypoint_path,
                 )
             )
         return records
@@ -632,4 +711,5 @@ def replace_tile_index(record: ObstacleTileAssignmentRecord, tile_index: int) ->
         sequence_total_length_y=record.sequence_total_length_y,
         template_geometry_path=record.template_geometry_path,
         template_metadata_path=record.template_metadata_path,
+        waypoint_path=record.waypoint_path,
     )

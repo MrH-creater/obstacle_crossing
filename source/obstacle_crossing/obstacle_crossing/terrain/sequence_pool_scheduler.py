@@ -20,6 +20,7 @@ from .sequence_generator import (
 )
 from .terrain_registry import ObstacleTerrainRegistry
 from .terrain_specs import ContinuousSequenceSamplingCfg
+from .terrain_waypoints import waypoint_path_from_payload
 
 
 @dataclass(frozen=True)
@@ -356,6 +357,11 @@ def _load_template_record(metadata_path: Path) -> SequenceTemplateRecord:
         base_floor_start_margin_y=float(payload.get("base_floor_start_margin_y", 1.0)),
         base_floor_end_margin_y=float(payload.get("base_floor_end_margin_y", 1.0)),
         base_floor_top_z=float(payload.get("base_floor_top_z", 0.0)),
+        sequence_path=waypoint_path_from_payload(payload.get("sequence_path")),
+        segment_waypoint_ranges=_int_range_tuple(payload.get("segment_waypoint_ranges", [])),
+        segment_arc_ranges=_range_tuple(payload.get("segment_arc_ranges", [])),
+        buffer_arc_ranges=_range_tuple(payload.get("buffer_arc_ranges", [])),
+        exit_arc_range=_optional_range(payload.get("exit_arc_range")),
         geometry_output_path=_optional_str(payload.get("geometry_output_path")),
         metadata_output_path=_optional_str(payload.get("metadata_output_path")) or str(metadata_path),
         geometry_output_path_rel=_optional_str(payload.get("geometry_output_path_rel")),
@@ -380,6 +386,17 @@ def _triple_float(values: list[float] | tuple[float, float, float]) -> tuple[flo
 
 def _range_tuple(values: list[list[float]] | tuple[tuple[float, float], ...]) -> tuple[tuple[float, float], ...]:
     return tuple((float(start), float(end)) for start, end in values)
+
+
+def _int_range_tuple(values: list[list[int]] | tuple[tuple[int, int], ...]) -> tuple[tuple[int, int], ...]:
+    return tuple((int(start), int(end)) for start, end in values)
+
+
+def _optional_range(value: object) -> tuple[float, float] | None:
+    if value is None:
+        return None
+    start, end = value
+    return (float(start), float(end))
 
 
 

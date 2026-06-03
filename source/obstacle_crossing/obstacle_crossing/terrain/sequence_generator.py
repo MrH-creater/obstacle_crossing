@@ -12,6 +12,13 @@ import yaml
 
 from .terrain_registry import ObstacleTerrainRegistry
 from .terrain_specs import ContinuousSequenceSamplingCfg, ObstacleTerrainSpec, SequenceEvalCfg
+from .terrain_waypoints import (
+    SequenceWaypointPathRecord,
+    WaypointPathRecord,
+    build_single_terrain_waypoint_record,
+    compose_sequence_waypoint_path,
+    waypoint_path_to_payload,
+)
 
 _FORWARD_AXIS = "+Y"
 _GEOMETRY_BACKENDS = ("stl", "usd")
@@ -21,6 +28,10 @@ _Z_MIN_TOLERANCE = 1.0e-3
 _Z_CONNECTION_TOLERANCE = 5.0e-2
 _MIN_EDGE_BAND_WIDTH = 5.0e-2
 _MAX_EDGE_BAND_WIDTH = 2.5e-1
+# The centered symmetrical ramp mesh is stored with its entry-exit axis along X.
+# Sequence templates use +Y as the forward axis, so this segment needs an
+# explicit quarter-turn instead of relying on extent-ratio inference.
+_FORCE_ROTATE_TO_POSITIVE_Y_TERRAIN_KEYS = frozenset({"symmetrical_ramp"})
 _BASE_FLOOR_START_MARGIN_Y = 1.0
 _BASE_FLOOR_END_MARGIN_Y = 1.0
 _BASE_FLOOR_WIDTH_X = 3.0
@@ -100,6 +111,11 @@ class SequenceTemplateRecord:
     base_floor_start_margin_y: float = _BASE_FLOOR_START_MARGIN_Y
     base_floor_end_margin_y: float = _BASE_FLOOR_END_MARGIN_Y
     base_floor_top_z: float = _BASE_FLOOR_TOP_Z
+    sequence_path: WaypointPathRecord | None = None
+    segment_waypoint_ranges: tuple[tuple[int, int], ...] = ()
+    segment_arc_ranges: tuple[tuple[float, float], ...] = ()
+    buffer_arc_ranges: tuple[tuple[float, float], ...] = ()
+    exit_arc_range: tuple[float, float] | None = None
     geometry_output_path: str | None = None
     metadata_output_path: str | None = None
     geometry_output_path_rel: str | None = None
@@ -248,7 +264,7 @@ def inspect_segment_alignment(
         warnings.append(
             f"Segment '{spec.key}' has z_min={bounds_min[2]:.4f}, which exceeds tolerance {_Z_MIN_TOLERANCE:.4f}."
         )
-    if extent_xyz[1] + 1.0e-6 < extent_xyz[0]:
+    if _should_warn_not_aligned_to_positive_y(spec, extent_xyz):
         warnings.append(f"Segment '{spec.key}' is not aligned to +Y after normalization.")
     if z_start_edge_mean is None:
         warnings.append(f"Segment '{spec.key}' has no detectable start-edge height sample.")
@@ -285,7 +301,7 @@ def normalize_segment_geometry(
     normalized_mesh = geometry.copy()
     bounds_min, bounds_max = _bounds_as_tuples(normalized_mesh)
     extent_xyz = _extent_from_bounds(bounds_min, bounds_max)
-    if _should_rotate_to_positive_y(extent_xyz):
+    if _should_rotate_segment_to_positive_y(spec, extent_xyz):
         rotation = trimesh.transformations.rotation_matrix(math.pi / 2.0, (0.0, 0.0, 1.0))
         normalized_mesh.apply_transform(rotation)
     alignment_report = inspect_segment_alignment(
@@ -400,16 +416,25 @@ def compose_sequence_geometry(
         else:
             current_y = end_y
 
+    base_floor_width_x = max(_BASE_FLOOR_WIDTH_X, *(report.extent_xyz[0] for report in alignment_reports))
     obstacle_span_end_y = segment_ranges_y[-1][1]
     sequence_total_length_y = obstacle_span_end_y + _BASE_FLOOR_END_MARGIN_Y
     base_floor_mesh = _build_sequence_base_floor(
         total_length_y=sequence_total_length_y,
-        width_x=_BASE_FLOOR_WIDTH_X,
+        width_x=base_floor_width_x,
         thickness_z=_BASE_FLOOR_THICKNESS_Z,
         top_z=_BASE_FLOOR_TOP_Z,
     )
     combined_mesh = trimesh.util.concatenate([base_floor_mesh, *translated_meshes])
     sequence_id_value = sequence_id or _build_sequence_id(terrain_ids, buffer_lengths)
+    sequence_waypoint_record = _compose_sequence_waypoint_record(
+        sequence_id=sequence_id_value,
+        canonical_specs=canonical_specs,
+        segment_ranges_y=tuple(segment_ranges_y),
+        buffer_ranges_y=tuple(buffer_ranges_y),
+        command_profile_keys=command_profile_keys,
+        sequence_total_length_y=sequence_total_length_y,
+    )
 
     return SequenceTemplateRecord(
         sequence_id=sequence_id_value,
@@ -431,6 +456,12 @@ def compose_sequence_geometry(
         input_format=segment_geometries[0].input_backend,
         output_format=output_backend,
         forward_axis=_FORWARD_AXIS,
+        base_floor_width_x=base_floor_width_x,
+        sequence_path=sequence_waypoint_record.path,
+        segment_waypoint_ranges=sequence_waypoint_record.segment_waypoint_ranges,
+        segment_arc_ranges=sequence_waypoint_record.segment_arc_ranges,
+        buffer_arc_ranges=sequence_waypoint_record.buffer_arc_ranges,
+        exit_arc_range=sequence_waypoint_record.exit_arc_range,
         warnings=tuple(warnings),
         sequence_mesh=combined_mesh,
     )
@@ -827,6 +858,22 @@ def _should_rotate_to_positive_y(extent_xyz: tuple[float, float, float]) -> bool
     return x_extent >= y_extent * _ROTATION_RATIO_THRESHOLD
 
 
+def _should_rotate_segment_to_positive_y(
+    spec: ObstacleTerrainSpec,
+    extent_xyz: tuple[float, float, float],
+) -> bool:
+    return spec.key in _FORCE_ROTATE_TO_POSITIVE_Y_TERRAIN_KEYS or _should_rotate_to_positive_y(extent_xyz)
+
+
+def _should_warn_not_aligned_to_positive_y(
+    spec: ObstacleTerrainSpec,
+    extent_xyz: tuple[float, float, float],
+) -> bool:
+    if spec.key in _FORCE_ROTATE_TO_POSITIVE_Y_TERRAIN_KEYS:
+        return False
+    return extent_xyz[1] + 1.0e-6 < extent_xyz[0]
+
+
 def _bounds_as_tuples(mesh: trimesh.Trimesh) -> tuple[tuple[float, float, float], tuple[float, float, float]]:
     bounds = np.asarray(mesh.bounds, dtype=float)
     return tuple(float(v) for v in bounds[0]), tuple(float(v) for v in bounds[1])
@@ -855,6 +902,29 @@ def _build_sequence_base_floor(
     floor_center = np.array([0.0, total_length_y / 2.0, top_z - thickness_z / 2.0], dtype=float)
     floor_extents = np.array([width_x, total_length_y, thickness_z], dtype=float)
     return trimesh.creation.box(extents=floor_extents, transform=trimesh.transformations.translation_matrix(floor_center))
+
+
+def _compose_sequence_waypoint_record(
+    *,
+    sequence_id: str,
+    canonical_specs: tuple[ObstacleTerrainSpec, ...],
+    segment_ranges_y: tuple[tuple[float, float], ...],
+    buffer_ranges_y: tuple[tuple[float, float], ...],
+    command_profile_keys: tuple[str, ...],
+    sequence_total_length_y: float,
+) -> SequenceWaypointPathRecord:
+    segment_paths = tuple(
+        build_single_terrain_waypoint_record(spec).path
+        for spec in canonical_specs
+    )
+    return compose_sequence_waypoint_path(
+        sequence_id=sequence_id,
+        segment_paths=segment_paths,
+        segment_ranges_y=segment_ranges_y,
+        buffer_ranges_y=buffer_ranges_y,
+        command_profile_keys=command_profile_keys,
+        sequence_total_length_y=sequence_total_length_y,
+    )
 
 
 def _edge_height_mean(
@@ -956,6 +1026,14 @@ def _template_to_yaml_payload(template: SequenceTemplateRecord) -> dict:
         "base_floor_start_margin_y": float(template.base_floor_start_margin_y),
         "base_floor_end_margin_y": float(template.base_floor_end_margin_y),
         "base_floor_top_z": float(template.base_floor_top_z),
+        "sequence_path": None if template.sequence_path is None else waypoint_path_to_payload(template.sequence_path),
+        "segment_waypoint_ranges": [[int(start), int(end)] for start, end in template.segment_waypoint_ranges],
+        "segment_arc_ranges": [[float(start), float(end)] for start, end in template.segment_arc_ranges],
+        "buffer_arc_ranges": [[float(start), float(end)] for start, end in template.buffer_arc_ranges],
+        "exit_arc_range": None if template.exit_arc_range is None else [
+            float(template.exit_arc_range[0]),
+            float(template.exit_arc_range[1]),
+        ],
         "geometry_output_path": template.geometry_output_path,
         "metadata_output_path": template.metadata_output_path,
         "geometry_output_path_rel": template.geometry_output_path_rel,
@@ -1017,6 +1095,8 @@ def _pool_manifest_payload(pool: SequenceTemplatePool) -> dict:
                 "terrain_keys": list(template.terrain_keys),
                 "sequence_length": template.sequence_length,
                 "sequence_total_length_y": float(template.sequence_total_length_y),
+                "path_frame": None if template.sequence_path is None else template.sequence_path.frame,
+                "path_total_length_s": None if template.sequence_path is None else float(template.sequence_path.total_length_s),
             }
             for template in pool.template_records
         ],
