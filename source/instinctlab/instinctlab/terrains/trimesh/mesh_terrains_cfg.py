@@ -36,8 +36,8 @@ class MotionMatchedTerrainCfg(SubTerrainBaseCfg):
     This file should specify the motion matching parameters, such as the motion files to be used,
     the matching criteria, and any other relevant settings.
 
-    You may use the `scripts/motion_matched_metadata_generator.py` to generate the metadata.yaml file if you arrange your
-    dataset in the structure as described in `scripts/motion_matched_metadata_generator.py`.
+    You may use the `scripts/legacy/motion_matched_metadata_generator.py` to generate the metadata.yaml file if you arrange
+    your dataset in the structure as described in `scripts/legacy/motion_matched_metadata_generator.py`.
 
     ## Typical yaml file structure
 

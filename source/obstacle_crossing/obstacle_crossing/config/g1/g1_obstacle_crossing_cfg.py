@@ -24,10 +24,12 @@ from obstacle_crossing.config.obstacle_crossing_env_cfg import ObstacleCrossingE
 from obstacle_crossing.terrain import ContinuousSequenceSamplingCfg, build_default_obstacle_crossing_registry
 
 __file_dir__ = os.path.dirname(os.path.realpath(__file__))
-_TERRAIN_DATA_DIR = os.path.abspath(
-    os.path.join(__file_dir__, "..", "..", "..", "..", "..", "..", "..", "terrains", "combined")
-)
-_METADATA_YAML = os.path.join(_TERRAIN_DATA_DIR, "metadata_registry_aligned.yaml")
+_REPO_ROOT = os.path.abspath(os.path.join(__file_dir__, "..", "..", "..", "..", ".."))
+# Metadata is task configuration, but its terrain_file / motion_file entries are
+# resolved by the loaders relative to this data root.
+_DATA_ROOT = _REPO_ROOT
+_TERRAIN_CONFIG_DIR = os.path.abspath(os.path.join(__file_dir__, "..", "terrain"))
+_METADATA_YAML = os.path.join(_TERRAIN_CONFIG_DIR, "metadata_registry_aligned.yaml")
 
 G1_CFG = copy.deepcopy(G1_29DOF_TORSOBASE_POPSICLE_CFG)
 G1_CFG.spawn.merge_fixed_joints = True
@@ -47,7 +49,7 @@ OBSTACLE_CROSSING_TERRAIN_GEN_CFG = TerrainGeneratorCfg(
     sub_terrains={
         "motion_matched": MotionMatchedTerrainCfg(
             proportion=1.0,
-            path=_TERRAIN_DATA_DIR,
+            path=_DATA_ROOT,
             metadata_yaml=_METADATA_YAML,
         ),
     },
@@ -58,7 +60,7 @@ OBSTACLE_CROSSING_TERRAIN_GEN_CFG_PLAY.num_rows = 6
 OBSTACLE_CROSSING_TERRAIN_GEN_CFG_PLAY.num_cols = 6
 
 obstacle_crossing_motion_cfg = TerrainMotionCfg(
-    path=_TERRAIN_DATA_DIR,
+    path=_DATA_ROOT,
     metadata_yaml=_METADATA_YAML,
     retargetting_func=None,
     motion_start_from_middle_range=[0.0, 0.0],

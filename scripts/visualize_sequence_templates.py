@@ -55,7 +55,7 @@ BASE_FLOOR_THICKNESS_Z = 0.20
 BASE_FLOOR_TOP_Z = 0.0
 DEFAULT_SEQUENCE_START_ITERATION = 10000
 DEFAULT_OUTPUT_DIR = REPO_ROOT / "terrains" / "generated_sequences" / "visualization"
-DEFAULT_TERRAIN_ROOT = REPO_ROOT / "terrains" / "combined"
+DEFAULT_TERRAIN_ROOT = REPO_ROOT
 DEFAULT_COMMAND_VECTOR_SCALE = 0.55
 DEFAULT_PATH_VELOCITY_SOLVER_CFG = PathVelocitySolverCfg()
 
@@ -98,7 +98,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--template-count", type=int, default=4)
     parser.add_argument("--seed", type=int, default=0)
     parser.add_argument("--output-dir", type=Path, default=DEFAULT_OUTPUT_DIR)
-    parser.add_argument("--terrain-root", type=Path, default=DEFAULT_TERRAIN_ROOT)
+    parser.add_argument(
+        "--terrain-root",
+        type=Path,
+        default=DEFAULT_TERRAIN_ROOT,
+        help="Root used to resolve registry terrain_file paths. Defaults to the repository root.",
+    )
     parser.add_argument("--input-backend", choices=GEOMETRY_BACKENDS, default="stl")
     parser.add_argument("--output-backend", choices=GEOMETRY_BACKENDS, default="stl")
     parser.add_argument("--template-index", type=int)

@@ -76,7 +76,7 @@ ramp → symmetrical → cross_slope → s_curve → hurdling → slalom
 | 文件 | 路径 | 内容 |
 |------|------|------|
 | 10 地形索引 | `terrains/centered/metadata.yaml` | 10 个独立地形 terrain_id（字符串）→ terrain_file |
-| 6 地形 + motion | `terrains/combined/metadata.yaml` | **整数 terrain_id** 0~5；6 个 motion_file 一一对应 |
+| 6 地形 + motion | `source/obstacle_crossing/obstacle_crossing/config/terrain/metadata_registry_aligned.yaml` | registry 全局 terrain_id 子集：0,1,2,3,4,6；motion_file 指向 `assets/action_file/` |
 
 ### 4.4 辅助工具
 
@@ -108,7 +108,7 @@ base_quat_w  : (N_frames, 4) float32, world frame (w, x, y, z)
 
 **目标**: stay_still 占位下，6 sub-terrain 场景能在 play.py 加载渲染。
 
-- [x] 写 `terrains/combined/metadata.yaml`（6 terrain_id 0~5）
+- [x] 写 `source/obstacle_crossing/obstacle_crossing/config/terrain/metadata_registry_aligned.yaml`（registry-aligned terrain_id：0,1,2,3,4,6）
 - [x] 写 `scripts/make_stay_still_npz.py`
 - [x] 写 `tasks/parkour/config/g1/g1_six_terrain_cfg.py`
 - [ ] 在 `tasks/parkour/config/g1/__init__.py` 注册 gym id `Isaac-G1-SixTerrain-v0` / `-PLAY-v0`
@@ -117,13 +117,13 @@ base_quat_w  : (N_frames, 4) float32, world frame (w, x, y, z)
 
 ### 阶段 W2：单地形调通 ⬜
 
-- 临时把 metadata.yaml 的 terrains 缩到 1 个（连续斜坡）
+- 临时把 registry-aligned metadata 的 terrains 缩到 1 个（连续斜坡）
 - `train.py` 跑通；reward 收敛，能走完斜坡
 - 此阶段已含 actuator delay（不含 DR）
 
 ### 阶段 W3：6 sub-terrain 联合训练 ⬜
 
-- 完整 metadata.yaml 6 terrains
+- 完整 registry-aligned metadata 6 terrains
 - 12×12 grid, curriculum=True
 - 替换部分 motion 为真实 retargetted（优先级见 §七）
 
@@ -191,14 +191,14 @@ InstinctLab/
 │   │   └── metadata.yaml                 # 10 地形索引（字符串 id，独立用）
 │   ├── combined/
 │   │   ├── longitudinal_6_terrains.stl    # 长条评估用 STL（非训练）
-│   │   ├── metadata.yaml                 # ✓ 训练 6 terrain_id + 6 motion 索引
-│   │   └── motions/                      # ⬜ 由 make_stay_still_npz.py 产出
-│   │       ├── ramp_retargetted.npz
-│   │       ├── symmetrical_ramp_retargetted.npz
-│   │       ├── cross_slope_retargetted.npz
-│   │       ├── s_curve_retargetted.npz
-│   │       ├── hurdling_retargetted.npz
-│   │       └── slalom_retargetted.npz
+│   │   ├── metadata.yaml                 # registry-aligned 兼容副本，避免旧引用错用 0~5 重编号
+│   ├── action_file/                      # ⬜ 由 make_stay_still_npz.py 产出
+│   │   ├── ramp_retargetted.npz
+│   │   ├── hurdling_retargetted.npz
+│   │   ├── cross_slope_retargetted.npz
+│   │   ├── slalom_retargetted.npz
+│   │   ├── symmetrical_ramp_retargetted.npz
+│   │   └── s_curve_retargetted.npz
 │   └── PROJECT_FRAMEWORK.md              # 本文档
 ├── scripts/
 │   ├── visualize_terrain.py              # STL 可视化工具
@@ -211,6 +211,8 @@ InstinctLab/
 │   │       ├── g1_parkour_target_amp_cfg.py
 │   │       └── g1_six_terrain_cfg.py     # ✓ 新建：6 地形 env
 │   └── motion_reference/                 # 动作参考管理系统
+├── source/obstacle_crossing/obstacle_crossing/config/terrain/
+│   └── metadata_registry_aligned.yaml     # ✓ 当前训练 metadata 配置
 └── docker/                               # Docker 部署配置
 ```
 

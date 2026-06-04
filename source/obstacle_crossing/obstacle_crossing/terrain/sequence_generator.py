@@ -425,7 +425,7 @@ def compose_sequence_geometry(
         thickness_z=_BASE_FLOOR_THICKNESS_Z,
         top_z=_BASE_FLOOR_TOP_Z,
     )
-    combined_mesh = trimesh.util.concatenate([base_floor_mesh, *translated_meshes])
+    sequence_mesh = trimesh.util.concatenate([base_floor_mesh, *translated_meshes])
     sequence_id_value = sequence_id or _build_sequence_id(terrain_ids, buffer_lengths)
     sequence_waypoint_record = _compose_sequence_waypoint_record(
         sequence_id=sequence_id_value,
@@ -463,7 +463,7 @@ def compose_sequence_geometry(
         buffer_arc_ranges=sequence_waypoint_record.buffer_arc_ranges,
         exit_arc_range=sequence_waypoint_record.exit_arc_range,
         warnings=tuple(warnings),
-        sequence_mesh=combined_mesh,
+        sequence_mesh=sequence_mesh,
     )
 
 
@@ -833,7 +833,7 @@ def _validate_metadata_backend(name: str) -> None:
 
 
 def _default_terrain_root() -> Path:
-    return _repository_root() / "terrains" / "combined"
+    return _repository_root()
 
 
 def _default_output_dir(split: str) -> Path:
@@ -845,7 +845,8 @@ def _repository_root() -> Path:
 
 
 def _resolve_terrain_path(spec: ObstacleTerrainSpec, terrain_root: Path) -> Path:
-    terrain_path = (terrain_root / spec.terrain_file).resolve()
+    spec_path = Path(spec.terrain_file)
+    terrain_path = spec_path if spec_path.is_absolute() else (terrain_root / spec_path).resolve()
     if not terrain_path.exists():
         raise FileNotFoundError(
             f"Terrain file for '{spec.key}' was not found: '{terrain_path}'."

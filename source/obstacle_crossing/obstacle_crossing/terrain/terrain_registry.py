@@ -29,8 +29,8 @@ DEFAULT_G1_TERRAIN_SPECS: tuple[ObstacleTerrainSpec, ...] = (
     ObstacleTerrainSpec(
         key="continuous_ramp",
         terrain_id=0,
-        terrain_file="../centered/1.Continuous Ramp.stl",
-        motion_file="motions/ramp_retargetted.npz",
+        terrain_file="terrains/centered/1.Continuous Ramp.stl",
+        motion_file="assets/action_file/ramp_retargetted.npz",
         curriculum_rank=0,
         command_profile_key="straight",
         enabled_for_single_training=True,
@@ -43,8 +43,8 @@ DEFAULT_G1_TERRAIN_SPECS: tuple[ObstacleTerrainSpec, ...] = (
     ObstacleTerrainSpec(
         key="continuous_hurdling",
         terrain_id=1,
-        terrain_file="../centered/2.Continuous Hurdling.stl",
-        motion_file="motions/hurdling_retargetted.npz",
+        terrain_file="terrains/centered/2.Continuous Hurdling.stl",
+        motion_file="assets/action_file/hurdling_retargetted.npz",
         curriculum_rank=1,
         command_profile_key="clearance",
         enabled_for_single_training=True,
@@ -57,8 +57,8 @@ DEFAULT_G1_TERRAIN_SPECS: tuple[ObstacleTerrainSpec, ...] = (
     ObstacleTerrainSpec(
         key="cross_slope",
         terrain_id=2,
-        terrain_file="../centered/3.Cross Slope.stl",
-        motion_file="motions/cross_slope_retargetted.npz",
+        terrain_file="terrains/centered/3.Cross Slope.stl",
+        motion_file="assets/action_file/cross_slope_retargetted.npz",
         curriculum_rank=2,
         command_profile_key="straight",
         enabled_for_single_training=True,
@@ -71,8 +71,8 @@ DEFAULT_G1_TERRAIN_SPECS: tuple[ObstacleTerrainSpec, ...] = (
     ObstacleTerrainSpec(
         key="consecutive_slalom",
         terrain_id=3,
-        terrain_file="../centered/4.Consecutive Slalom.stl",
-        motion_file="motions/slalom_retargetted.npz",
+        terrain_file="terrains/centered/4.Consecutive Slalom.stl",
+        motion_file="assets/action_file/slalom_retargetted.npz",
         curriculum_rank=5,
         command_profile_key="slalom",
         enabled_for_single_training=True,
@@ -85,8 +85,8 @@ DEFAULT_G1_TERRAIN_SPECS: tuple[ObstacleTerrainSpec, ...] = (
     ObstacleTerrainSpec(
         key="symmetrical_ramp",
         terrain_id=4,
-        terrain_file="../centered/5.Symmetrical Ramp.stl",
-        motion_file="motions/symmetrical_ramp_retargetted.npz",
+        terrain_file="terrains/centered/5.Symmetrical Ramp.stl",
+        motion_file="assets/action_file/symmetrical_ramp_retargetted.npz",
         curriculum_rank=3,
         command_profile_key="straight",
         enabled_for_single_training=True,
@@ -99,7 +99,7 @@ DEFAULT_G1_TERRAIN_SPECS: tuple[ObstacleTerrainSpec, ...] = (
     ObstacleTerrainSpec(
         key="spiral_staircase",
         terrain_id=5,
-        terrain_file="../centered/6.Spiral Staircase.stl",
+        terrain_file="terrains/centered/6.Spiral Staircase.stl",
         motion_file=None,
         curriculum_rank=6,
         command_profile_key="stairs",
@@ -114,8 +114,8 @@ DEFAULT_G1_TERRAIN_SPECS: tuple[ObstacleTerrainSpec, ...] = (
     ObstacleTerrainSpec(
         key="s_curve",
         terrain_id=6,
-        terrain_file="../centered/7.S-Curve.stl",
-        motion_file="motions/s_curve_retargetted.npz",
+        terrain_file="terrains/centered/7.S-Curve.stl",
+        motion_file="assets/action_file/s_curve_retargetted.npz",
         curriculum_rank=4,
         command_profile_key="turning",
         enabled_for_single_training=True,
@@ -128,7 +128,7 @@ DEFAULT_G1_TERRAIN_SPECS: tuple[ObstacleTerrainSpec, ...] = (
     ObstacleTerrainSpec(
         key="one_meter_platform",
         terrain_id=7,
-        terrain_file="../centered/8.One-meter Platform.stl",
+        terrain_file="terrains/centered/8.One-meter Platform.stl",
         motion_file=None,
         curriculum_rank=7,
         command_profile_key="platform",
@@ -143,7 +143,7 @@ DEFAULT_G1_TERRAIN_SPECS: tuple[ObstacleTerrainSpec, ...] = (
     ObstacleTerrainSpec(
         key="crawl_channel",
         terrain_id=8,
-        terrain_file="../centered/9.Crawl Channel.stl",
+        terrain_file="terrains/centered/9.Crawl Channel.stl",
         motion_file=None,
         curriculum_rank=8,
         command_profile_key="crawl",
@@ -158,7 +158,7 @@ DEFAULT_G1_TERRAIN_SPECS: tuple[ObstacleTerrainSpec, ...] = (
     ObstacleTerrainSpec(
         key="width_restricted_l_shaped_bend",
         terrain_id=9,
-        terrain_file="../centered/10.Width-restricted L-shaped Bend.stl",
+        terrain_file="terrains/centered/10.Width-restricted L-shaped Bend.stl",
         motion_file=None,
         curriculum_rank=9,
         command_profile_key="l_bend",

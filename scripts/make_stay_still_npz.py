@@ -12,7 +12,7 @@ These NPZs satisfy the schema expected by `AmassMotion._read_retargetted_motion_
 The placeholder is a static pose held for `--duration` seconds. Once the training
 pipeline is validated end-to-end, replace each NPZ with a real retargetted motion
 (AMASS retarget, Isaac Sim keyframe export, or mocap retarget). Keep the file names
-fixed — they are referenced by `terrains/combined/metadata.yaml`.
+fixed -- they are referenced by `source/obstacle_crossing/obstacle_crossing/config/terrain/metadata_registry_aligned.yaml`.
 
 Usage:
     python scripts/make_stay_still_npz.py
@@ -59,14 +59,14 @@ G1_29DOF_JOINT_NAMES = [
     "right_wrist_yaw_joint",
 ]
 
-# Output file names — fixed contract with terrains/combined/metadata.yaml.
+# Output file names -- fixed contract with obstacle_crossing/config/terrain/metadata_registry_aligned.yaml.
 TERRAIN_MOTION_NAMES = [
     "ramp",
-    "symmetrical_ramp",
-    "cross_slope",
-    "s_curve",
     "hurdling",
+    "cross_slope",
     "slalom",
+    "symmetrical_ramp",
+    "s_curve",
 ]
 
 # Pose used for the stay-still placeholder. The base sits at the terrain origin
@@ -139,7 +139,7 @@ def main() -> None:
         "--out-dir",
         default=os.path.join(
             os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
-            "terrains", "combined", "motions",
+            "assets", "action_file",
         ),
         help="Directory to write the placeholder NPZ files.",
     )

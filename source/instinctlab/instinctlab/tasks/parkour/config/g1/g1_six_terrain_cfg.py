@@ -4,9 +4,9 @@ Derived from `g1_parkour_target_amp_cfg.py`. Key deviations:
 
 - Replaces the ROUGH_TERRAINS (heightfield perlin / pyramid stairs) with a single
   MotionMatchedTerrainCfg sub-terrain that loads the six obstacle STLs via the
-  metadata.yaml under `<repo>/terrains/combined/`.
+  registry-aligned metadata under the obstacle_crossing config package.
 - Replaces the AMASS motion buffer with a TerrainMotionCfg pointed at the same
-  metadata.yaml — each of the six terrains gets its own motion file.
+  registry-aligned metadata — each enabled terrain gets its own motion file.
 - Sim2real-compatible observations: the existing parkour `PolicyCfg` already
   omits GT base linear velocity (kept only in `CriticCfg`), so no further edits
   are needed here.
@@ -46,13 +46,15 @@ from instinctlab.terrains.trimesh.mesh_terrains_cfg import MotionMatchedTerrainC
 # ---------------------------------------------------------------------------
 # Paths
 # ---------------------------------------------------------------------------
-# Repo layout: <repo>/terrains/combined/metadata.yaml references STLs in
-# ../centered/ and NPZs in motions/. So `path` is the combined dir itself.
+# Repo layout: the registry-aligned metadata lives under obstacle_crossing config,
+# while terrain and motion paths are resolved relative to `path`, the repo root.
 __file_dir__ = os.path.dirname(os.path.realpath(__file__))
-_TERRAIN_DATA_DIR = os.path.abspath(
-    os.path.join(__file_dir__, "..", "..", "..", "..", "..", "..", "..", "terrains", "combined")
+_REPO_ROOT = os.path.abspath(os.path.join(__file_dir__, "..", "..", "..", "..", "..", "..", ".."))
+_DATA_ROOT = _REPO_ROOT
+_TERRAIN_CONFIG_DIR = os.path.join(
+    _REPO_ROOT, "source", "obstacle_crossing", "obstacle_crossing", "config", "terrain"
 )
-_METADATA_YAML = os.path.join(_TERRAIN_DATA_DIR, "metadata.yaml")
+_METADATA_YAML = os.path.join(_TERRAIN_CONFIG_DIR, "metadata_registry_aligned.yaml")
 
 # ---------------------------------------------------------------------------
 # Robot
@@ -81,7 +83,7 @@ SIX_TERRAIN_GEN_CFG = TerrainGeneratorCfg(
     sub_terrains={
         "motion_matched": MotionMatchedTerrainCfg(
             proportion=1.0,
-            path=_TERRAIN_DATA_DIR,
+            path=_DATA_ROOT,
             metadata_yaml=_METADATA_YAML,
         ),
     },
@@ -94,11 +96,11 @@ SIX_TERRAIN_GEN_CFG_PLAY.num_cols = 6
 
 # ---------------------------------------------------------------------------
 # Motion reference — TerrainMotionCfg replaces the AMASS buffer. Each motion
-# is bound to a terrain_id via metadata.yaml; the manager places envs on the
+# is bound to a terrain_id via registry-aligned metadata; the manager places envs on the
 # matching sub-terrain origin.
 # ---------------------------------------------------------------------------
 six_terrain_motion_cfg = TerrainMotionCfg(
-    path=_TERRAIN_DATA_DIR,
+    path=_DATA_ROOT,
     metadata_yaml=_METADATA_YAML,
     retargetting_func=None,
     motion_start_from_middle_range=[0.0, 0.0],   # always start from first frame for stay_still
