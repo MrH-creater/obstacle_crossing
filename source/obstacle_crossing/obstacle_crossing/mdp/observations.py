@@ -2,27 +2,30 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-import torch
-
 if TYPE_CHECKING:
+    import torch
     from isaaclab.envs import ManagerBasedRLEnv
 
 
-def compute_observations(env: ManagerBasedRLEnv) -> dict[str, torch.Tensor]:
-    raise NotImplementedError("TODO: assemble the full observation dictionary for obstacle crossing.")
+# ============================================================
+# Policy group observations
+# (sim2real-safe terms fed directly to the policy network)
+# ============================================================
 
 
-def compute_policy_observations(env: ManagerBasedRLEnv) -> dict[str, torch.Tensor]:
-    raise NotImplementedError("TODO: assemble sim2real-safe policy observations.")
+# ============================================================
+# Critic group observations
+# (may include privileged terms not available at deployment)
+# ============================================================
 
 
-def compute_critic_observations(env: ManagerBasedRLEnv) -> dict[str, torch.Tensor]:
-    raise NotImplementedError("TODO: assemble critic observations, including privileged terms if needed.")
+# ============================================================
+# Privileged observations
+# (privileged-only signals, critic/teacher use)
+# ============================================================
 
 
-def terrain_assignment_debug(env: ManagerBasedRLEnv) -> torch.Tensor:
-    raise NotImplementedError("TODO: expose terrain assignment / role debug signals for observation inspection.")
-
-
-def env_role_debug(env: ManagerBasedRLEnv) -> torch.Tensor:
-    raise NotImplementedError("TODO: expose env role ids for single-train / sequence-train / eval pools.")
+# ============================================================
+# AMP observations
+# (amp_policy / amp_reference state terms)
+# ============================================================

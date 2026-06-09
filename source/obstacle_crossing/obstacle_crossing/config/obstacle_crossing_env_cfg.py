@@ -161,8 +161,6 @@ class ObstacleCrossingObservationsCfg:
         joint_pos = ObsTerm(func=mdp.joint_pos_rel, noise=Unoise(n_min=-0.01, n_max=0.01), history_length=8, flatten_history_dim=True)
         joint_vel = ObsTerm(func=mdp.joint_vel_rel, noise=Unoise(n_min=-0.5, n_max=0.5), scale=0.05, history_length=8, flatten_history_dim=True)
         actions = ObsTerm(func=mdp.last_action, history_length=8, flatten_history_dim=True)
-        terrain_assignment = ObsTerm(func=mdp.terrain_assignment_debug, noise=None)
-        env_role = ObsTerm(func=mdp.env_role_debug, noise=None)
         depth_image = ObsTerm(
             func=mdp.delayed_visualizable_image,
             params={
@@ -189,8 +187,6 @@ class ObstacleCrossingObservationsCfg:
         joint_pos = ObsTerm(func=mdp.joint_pos_rel, history_length=8, flatten_history_dim=True)
         joint_vel = ObsTerm(func=mdp.joint_vel_rel, scale=0.05, history_length=8, flatten_history_dim=True)
         actions = ObsTerm(func=mdp.last_action, history_length=8, flatten_history_dim=True)
-        terrain_assignment = ObsTerm(func=mdp.terrain_assignment_debug, noise=None)
-        env_role = ObsTerm(func=mdp.env_role_debug, noise=None)
         depth_image = ObsTerm(
             func=mdp.delayed_visualizable_image,
             params={
@@ -208,8 +204,78 @@ class ObstacleCrossingObservationsCfg:
             self.enable_corruption = False
             self.concatenate_terms = False
 
+    @configclass
+    class AmpPolicyStateObsCfg(ObsGroup):
+        concatenate_terms = False
+        projected_gravity = ObsTerm(
+            func=mdp.projected_gravity,
+            params={"asset_cfg": SceneEntityCfg("robot")},
+            history_length=10,
+        )
+        joint_pos_rel = ObsTerm(
+            func=mdp.joint_pos_rel,
+            history_length=10,
+            flatten_history_dim=True,
+            params={"asset_cfg": SceneEntityCfg(name="robot", preserve_order=True)},
+        )
+        joint_vel = ObsTerm(
+            func=mdp.joint_vel_rel,
+            scale=0.05,
+            history_length=10,
+            flatten_history_dim=True,
+            params={"asset_cfg": SceneEntityCfg(name="robot", preserve_order=True)},
+        )
+        base_lin_vel = ObsTerm(
+            func=mdp.base_lin_vel,
+            history_length=10,
+            flatten_history_dim=True,
+            params={"asset_cfg": SceneEntityCfg("robot")},
+        )
+        base_ang_vel = ObsTerm(
+            func=mdp.base_ang_vel,
+            history_length=10,
+            flatten_history_dim=True,
+            params={"asset_cfg": SceneEntityCfg("robot")},
+        )
+
+    @configclass
+    class AmpReferenceStateObsCfg(ObsGroup):
+        concatenate_terms = False
+        projected_gravity = ObsTerm(
+            func=mdp.projected_gravity_reference_as_state,
+            params={"asset_cfg": SceneEntityCfg(name="motion_reference")},
+            history_length=10,
+        )
+        joint_pos_rel = ObsTerm(
+            func=mdp.joint_pos_rel_reference_as_state,
+            history_length=10,
+            flatten_history_dim=True,
+            params={"asset_cfg": SceneEntityCfg(name="motion_reference")},
+        )
+        joint_vel = ObsTerm(
+            func=mdp.joint_vel_rel_reference_as_state,
+            scale=0.05,
+            history_length=10,
+            flatten_history_dim=True,
+            params={"asset_cfg": SceneEntityCfg(name="motion_reference")},
+        )
+        base_lin_vel = ObsTerm(
+            func=mdp.base_lin_vel_reference_as_state,
+            history_length=10,
+            flatten_history_dim=True,
+            params={"asset_cfg": SceneEntityCfg(name="motion_reference")},
+        )
+        base_ang_vel = ObsTerm(
+            func=mdp.base_ang_vel_reference_as_state,
+            history_length=10,
+            flatten_history_dim=True,
+            params={"asset_cfg": SceneEntityCfg(name="motion_reference")},
+        )
+
     policy: PolicyCfg = PolicyCfg()
     critic: CriticCfg = CriticCfg()
+    amp_policy: AmpPolicyStateObsCfg = AmpPolicyStateObsCfg()
+    amp_reference: AmpReferenceStateObsCfg = AmpReferenceStateObsCfg()
 
 
 @configclass
