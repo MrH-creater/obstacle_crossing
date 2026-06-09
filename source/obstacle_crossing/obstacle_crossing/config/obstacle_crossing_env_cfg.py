@@ -266,8 +266,8 @@ class ObstacleCrossingEventCfg:
     initialize_terrain_physics = EventTerm(func=mdp.initialize_terrain_physics_profiles, mode="startup")
     apply_terrain_physics = EventTerm(func=mdp.apply_terrain_physics_profiles, mode="startup")
     register_virtual_obstacles = EventTerm(func=mdp.register_virtual_obstacles_to_sensors, mode="startup")
-    reset_assignments = EventTerm(func=mdp.reset_env_terrain_assignments, mode="reset")
     update_curriculum_stage = EventTerm(func=mdp.update_curriculum_stage, mode="reset")
+    reset_assignments = EventTerm(func=mdp.reset_env_terrain_assignments, mode="reset")
 
 
 @configclass
