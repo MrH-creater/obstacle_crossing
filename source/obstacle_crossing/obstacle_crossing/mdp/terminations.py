@@ -9,10 +9,6 @@ if TYPE_CHECKING:
     from isaaclab.envs import ManagerBasedRLEnv
 
 
-def compute_terminations(env: ManagerBasedRLEnv) -> dict[str, torch.Tensor]:
-    raise NotImplementedError("TODO: aggregate obstacle-crossing termination signals.")
-
-
 def terrain_out_of_bounds(env: ManagerBasedRLEnv, distance_buffer: float = 2.0) -> torch.Tensor:
     raise NotImplementedError("TODO: terminate envs that leave the active terrain or terrain sequence bounds.")
 

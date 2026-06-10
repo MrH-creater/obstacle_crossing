@@ -9,10 +9,6 @@ if TYPE_CHECKING:
     from isaaclab.envs import ManagerBasedRLEnv
 
 
-def compute_rewards(env: ManagerBasedRLEnv) -> dict[str, torch.Tensor]:
-    raise NotImplementedError("TODO: aggregate obstacle-crossing reward terms for debugging / analysis.")
-
-
 def track_lin_vel_xy_exp(env: ManagerBasedRLEnv, command_name: str, std: float) -> torch.Tensor:
     raise NotImplementedError("TODO: obstacle-crossing specific linear velocity tracking reward.")
 

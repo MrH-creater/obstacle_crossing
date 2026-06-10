@@ -21,7 +21,7 @@ from isaaclab.utils.assets import ISAAC_NUCLEUS_DIR, ISAACLAB_NUCLEUS_DIR
 from isaaclab.utils.noise import AdditiveUniformNoiseCfg as Unoise
 
 import obstacle_crossing.mdp as mdp
-from instinctlab.assets.unitree_g1 import beyondmimic_action_scale
+from obstacle_crossing.assets.unitree import UNITREE_G1_23DOF_ACTION_JOINT_NAMES, UNITREE_G1_23DOF_ACTION_SCALE
 from instinctlab.managers import MultiRewardCfg
 from instinctlab.motion_reference import MotionReferenceManagerCfg
 from instinctlab.sensors import Grid3dPointsGeneratorCfg, NoisyGroupedRayCasterCameraCfg, VolumePointsCfg
@@ -280,7 +280,13 @@ class ObstacleCrossingObservationsCfg:
 
 @configclass
 class ObstacleCrossingActionsCfg:
-    joint_pos = mdp.JointPositionActionCfg(asset_name="robot", joint_names=[".*"], scale=beyondmimic_action_scale, use_default_offset=True)
+    joint_pos = mdp.JointPositionActionCfg(
+        asset_name="robot",
+        joint_names=UNITREE_G1_23DOF_ACTION_JOINT_NAMES,
+        scale=UNITREE_G1_23DOF_ACTION_SCALE,
+        use_default_offset=True,
+        preserve_order=True,
+    )
 
 
 @configclass

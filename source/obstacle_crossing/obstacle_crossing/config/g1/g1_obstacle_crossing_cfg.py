@@ -6,13 +6,7 @@ import os
 from isaaclab.envs import ViewerCfg
 from isaaclab.utils import configclass
 
-from instinctlab.assets.unitree_g1 import (
-    G1_29DOF_LINKS,
-    G1_29DOF_TORSOBASE_POPSICLE_CFG,
-    G1_29Dof_TorsoBase_symmetric_augmentation_joint_mapping,
-    G1_29Dof_TorsoBase_symmetric_augmentation_joint_reverse_buf,
-    beyondmimic_g1_29dof_delayed_actuators,
-)
+from obstacle_crossing.assets.unitree import UNITREE_G1_23DOF_CFG, UNITREE_G1_23DOF_LINKS
 from instinctlab.motion_reference import MotionReferenceManagerCfg
 from instinctlab.motion_reference.motion_files.terrain_motion_cfg import TerrainMotionCfg
 from instinctlab.motion_reference.utils import motion_interpolate_bilinear
@@ -31,7 +25,7 @@ _DATA_ROOT = _REPO_ROOT
 _TERRAIN_CONFIG_DIR = os.path.abspath(os.path.join(__file_dir__, "..", "terrain"))
 _METADATA_YAML = os.path.join(_TERRAIN_CONFIG_DIR, "metadata_registry_aligned.yaml")
 
-G1_CFG = copy.deepcopy(G1_29DOF_TORSOBASE_POPSICLE_CFG)
+G1_CFG = copy.deepcopy(UNITREE_G1_23DOF_CFG)
 G1_CFG.spawn.merge_fixed_joints = True
 G1_CFG.init_state.pos = (0.0, 0.0, 0.9)
 
@@ -76,9 +70,9 @@ motion_reference_cfg = MotionReferenceManagerCfg(
     prim_path="{ENV_REGEX_NS}/Robot/torso_link",
     robot_model_path=G1_CFG.spawn.asset_path,
     reference_prim_path="/World/envs/env_.*/RobotReference/torso_link",
-    symmetric_augmentation_link_mapping=[0, 1, 3, 2, 5, 4, 7, 6, 9, 8, 11, 10, 13, 12],
-    symmetric_augmentation_joint_mapping=G1_29Dof_TorsoBase_symmetric_augmentation_joint_mapping,
-    symmetric_augmentation_joint_reverse_buf=G1_29Dof_TorsoBase_symmetric_augmentation_joint_reverse_buf,
+    symmetric_augmentation_link_mapping=None,
+    symmetric_augmentation_joint_mapping=None,
+    symmetric_augmentation_joint_reverse_buf=None,
     frame_interval_s=0.02,
     update_period=0.02,
     num_frames=10,
@@ -90,8 +84,8 @@ motion_reference_cfg = MotionReferenceManagerCfg(
         "right_shoulder_roll_link",
         "left_elbow_link",
         "right_elbow_link",
-        "left_wrist_yaw_link",
-        "right_wrist_yaw_link",
+        "left_wrist_roll_rubber_hand",
+        "right_wrist_roll_rubber_hand",
         "left_hip_roll_link",
         "right_hip_roll_link",
         "left_knee_link",
@@ -115,8 +109,7 @@ class G1ObstacleCrossingEnvCfg(ObstacleCrossingEnvCfg):
         super().__post_init__()
         self.scene.terrain.terrain_generator = OBSTACLE_CROSSING_TERRAIN_GEN_CFG
         self.scene.robot = G1_CFG.replace(prim_path="{ENV_REGEX_NS}/Robot")
-        self.scene.robot.actuators = beyondmimic_g1_29dof_delayed_actuators
-        self.scene.camera.mesh_prim_paths.extend(get_link_prim_targets(G1_29DOF_LINKS))
+        self.scene.camera.mesh_prim_paths.extend(get_link_prim_targets(UNITREE_G1_23DOF_LINKS))
         self.scene.motion_reference = motion_reference_cfg
 
         self.observations.policy.depth_image = None
